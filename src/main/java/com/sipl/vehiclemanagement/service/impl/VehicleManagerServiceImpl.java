@@ -1,34 +1,67 @@
 package com.sipl.vehiclemanagement.service.impl;
 
-import java.time.LocalDateTime;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 import java.util.Optional;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.sipl.vehiclemanagement.dto.PostVehicle;
-import com.sipl.vehiclemanagement.dto.PutVehicle;
-import com.sipl.vehiclemanagement.dto.VehicleResponseDto;
+import com.sipl.vehiclemanagement.dto.user.UserLogin;
+import com.sipl.vehiclemanagement.dto.user.UserResponseDto;
+import com.sipl.vehiclemanagement.dto.user.UserSignup;
+import com.sipl.vehiclemanagement.dto.vehicle.PostVehicle;
+import com.sipl.vehiclemanagement.dto.vehicle.PutVehicle;
+import com.sipl.vehiclemanagement.dto.vehicle.VehicleResponseDto;
+import com.sipl.vehiclemanagement.exception.IncorrectPasswordException;
 import com.sipl.vehiclemanagement.exception.ResourceAlreadyExistsException;
 import com.sipl.vehiclemanagement.exception.ResourceNotFoundException;
+import com.sipl.vehiclemanagement.mapper.UserMapper;
 import com.sipl.vehiclemanagement.mapper.VehicleMapper;
+import com.sipl.vehiclemanagement.model.User;
 import com.sipl.vehiclemanagement.model.Vehicle;
+import com.sipl.vehiclemanagement.repository.UserRepository;
 import com.sipl.vehiclemanagement.repository.VehicleManagerRepository;
 import com.sipl.vehiclemanagement.service.VehicleManagerService;
+import com.sipl.vehiclemanagement.util.EncryptionUtil;
+
 
 @Service
 public class VehicleManagerServiceImpl implements VehicleManagerService{
-     
+ 
+//	//Encryption credentials
+//	private final IvParameterSpec ivParameterSpec = EncryptionUtil.generateIv();
+//	private final String algorithm = "AES/CBC/PKCS5Padding";
+    
+	@Autowired
+	private EncryptionUtil encryptionUtil;
+	   
+	@Autowired
 	private VehicleManagerRepository vehicleManagerRepository;
+	
+	@Autowired
+	private UserRepository userRepository;
 	
 	@Autowired
 	private VehicleMapper vehicleMapper;
 	
-	public VehicleManagerServiceImpl(VehicleManagerRepository vehicleManagerRepository) {
-	      this.vehicleManagerRepository= vehicleManagerRepository;
-	}
+	@Autowired
+	private UserMapper userMapper;
 	
+	
+//	public VehicleManagerServiceImpl() throws NoSuchAlgorithmException {
+//          this.key= EncryptionUtil.getKeyFromPassword(algorithm, algorithm)
+//	}
+//	
 
 	
 	@Override
@@ -93,5 +126,45 @@ public class VehicleManagerServiceImpl implements VehicleManagerService{
 	}
 
 
-	
+
+	@Override
+	public UserResponseDto signup(UserSignup userSignupObject) throws ResourceAlreadyExistsException ,NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException,
+    BadPaddingException, InvalidAlgorithmParameterException, NoSuchPaddingException, InvalidKeySpecException {
+		if(userRepository.existsByUsername(userSignupObject.getUsername())) {        //checking if the user already Exists
+			 throw new ResourceAlreadyExistsException("User", "username", userSignupObject.getUsername());
+		}else {
+			
+			User user= userMapper.userSignupToUser(userSignupObject);  //Mapping signupObject to User entity
+			 String password = user.getPassword();
+              SecretKey key= EncryptionUtil.generateKeyFromPassword(password);      //Generating a key from password
+			
+			 String cipherText = EncryptionUtil.encrypt( password, key);
+			    user.setPassword(cipherText);
+			User persistedUser = userRepository.save(user);        //persisting the user
+	        return userMapper.userToUserResponse(persistedUser);      //mapping to returning the response of type UserResponseDto
+		}
+		
+	}
+
+
+	@Override
+	public UserResponseDto login(UserLogin userLoginObject)throws ResourceNotFoundException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException, IncorrectPasswordException, InvalidKeySpecException {
+           Optional<User> optionalUserContainer= userRepository.findByUsername(userLoginObject.getUsername());
+           
+           if(optionalUserContainer.isEmpty()) {
+        	     throw new ResourceNotFoundException("User", "username", userLoginObject.getUsername());
+           }else {
+        	   User userFromDb = optionalUserContainer.get();
+        	  
+        	   String encryptedPasswordFromDb= userFromDb.getPassword();
+               SecretKey key= EncryptionUtil.generateKeyFromPassword(userLoginObject.getPassword());   //Generating a key from password
+        	   String decryptedPasswordPlainText = EncryptionUtil.decrypt(encryptedPasswordFromDb, key);
+        	   if(decryptedPasswordPlainText.equals(userLoginObject.getPassword())) {
+        		     return userMapper.userToUserResponse(userFromDb);
+        	   }else {
+        		     throw new IncorrectPasswordException();
+        	   }
+           }
+           
+	} 
 }

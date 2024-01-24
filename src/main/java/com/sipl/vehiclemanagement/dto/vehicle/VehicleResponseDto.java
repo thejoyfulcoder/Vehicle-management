@@ -1,15 +1,11 @@
-package com.sipl.vehiclemanagement.dto;
+package com.sipl.vehiclemanagement.dto.vehicle;
 
 import java.time.LocalDateTime;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 @Data
-public class PutVehicle {
-   
+public class VehicleResponseDto {
 	private String vehicleRegistrationNumber;
 
 	private String ownerName;
@@ -20,9 +16,4 @@ public class PutVehicle {
 	
 	private String isActive;
 	
-	private String modifierName;
-	
-	private LocalDateTime modificationTime;
-	
-
 }

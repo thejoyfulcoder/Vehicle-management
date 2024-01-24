@@ -1,4 +1,4 @@
-package com.sipl.vehiclemanagement.dto;
+package com.sipl.vehiclemanagement.dto.vehicle;
 
 import java.time.LocalDateTime;
 

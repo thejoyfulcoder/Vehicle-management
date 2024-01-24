@@ -7,12 +7,12 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.factory.Mappers;
 
-import com.sipl.vehiclemanagement.dto.PostVehicle;
-import com.sipl.vehiclemanagement.dto.PutVehicle;
-import com.sipl.vehiclemanagement.dto.VehicleResponseDto;
+import com.sipl.vehiclemanagement.dto.vehicle.PostVehicle;
+import com.sipl.vehiclemanagement.dto.vehicle.PutVehicle;
+import com.sipl.vehiclemanagement.dto.vehicle.VehicleResponseDto;
 import com.sipl.vehiclemanagement.model.Vehicle;
 import java.time.LocalDateTime;
-@Mapper (componentModel= MappingConstants.ComponentModel.SPRING)
+@Mapper (componentModel= MappingConstants.ComponentModel.SPRING) //this attribute is for specifying the type of autowiring
 public interface VehicleMapper {
 	
 	VehicleMapper INSTANCE= Mappers.getMapper(VehicleMapper.class);
