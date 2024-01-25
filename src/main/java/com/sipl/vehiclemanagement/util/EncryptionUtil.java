@@ -55,5 +55,4 @@ public class EncryptionUtil {
 		    return new String(plainText);
 		}
 
-
 }

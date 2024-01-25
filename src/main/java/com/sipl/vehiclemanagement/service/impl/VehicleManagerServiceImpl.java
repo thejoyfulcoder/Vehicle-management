@@ -159,6 +159,7 @@ public class VehicleManagerServiceImpl implements VehicleManagerService{
         	   String encryptedPasswordFromDb= userFromDb.getPassword();
                SecretKey key= EncryptionUtil.generateKeyFromPassword(userLoginObject.getPassword());   //Generating a key from password
         	   String decryptedPasswordPlainText = EncryptionUtil.decrypt(encryptedPasswordFromDb, key);
+        	   
         	   if(decryptedPasswordPlainText.equals(userLoginObject.getPassword())) {
         		     return userMapper.userToUserResponse(userFromDb);
         	   }else {

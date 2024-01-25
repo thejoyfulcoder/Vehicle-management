@@ -1,12 +1,13 @@
 package com.sipl.vehiclemanagement.controller.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -115,7 +116,12 @@ public class VehicleManagerControllerImpl implements VehicleManagerController {
 	@Override
 	public ResponseEntity<ApiResponseBody> signup(@RequestBody @Valid UserSignup signupObject, BindingResult bindingResult) {
     	if(bindingResult.hasErrors()){
-    		return new ResponseEntity<ApiResponseBody> (new ApiResponseBody("Incorrect inputs", HttpStatus.BAD_REQUEST, null),HttpStatus.BAD_REQUEST);
+    		List<FieldError> errors= bindingResult.getFieldErrors();
+    		List<String> errorResponseList=new ArrayList<String>();
+    	     for(int i=0;i<errors.size();i++) {
+    	    	errorResponseList.add(errors.get(i).getDefaultMessage());
+    	     }
+    		return new ResponseEntity<ApiResponseBody> (new ApiResponseBody("Incorrect inputs", HttpStatus.BAD_REQUEST, errorResponseList),HttpStatus.BAD_REQUEST);
     	}
     	else {
 			try {
@@ -131,8 +137,13 @@ public class VehicleManagerControllerImpl implements VehicleManagerController {
     @PostMapping("users/login")
 	@Override
 	public ResponseEntity<ApiResponseBody> login(@RequestBody @Valid UserLogin loginObject, BindingResult bindingResult) {
-	   	if(bindingResult.hasErrors()){
-    		return new ResponseEntity<ApiResponseBody> (new ApiResponseBody("Incorrect inputs", HttpStatus.BAD_REQUEST, null),HttpStatus.BAD_REQUEST);
+       	if(bindingResult.hasErrors()){
+    		List<FieldError> errors= bindingResult.getFieldErrors();
+    		List<String> errorResponseList=new ArrayList<String>();
+    	     for(int i=0;i<errors.size();i++) {
+    	    	errorResponseList.add(errors.get(i).getDefaultMessage());
+    	     }
+    		return new ResponseEntity<ApiResponseBody> (new ApiResponseBody("Incorrect inputs", HttpStatus.BAD_REQUEST, errorResponseList),HttpStatus.BAD_REQUEST);
     	}
 	   	else {
 	   		try {
