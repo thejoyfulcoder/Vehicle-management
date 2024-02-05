@@ -44,15 +44,15 @@ public class EncryptionUtil {
 	
 	
 	public static String decrypt( String cipherText, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException,
-		    InvalidAlgorithmParameterException, InvalidKeyException,
-		    BadPaddingException, IllegalBlockSizeException {
-		     byte[] salt = "salt1234".getBytes();
-		    PBEParameterSpec paramSpec = new PBEParameterSpec(salt, 20);
-		    Cipher cipher = Cipher.getInstance("PBEWithMD5AndDES");
-		    cipher.init(Cipher.DECRYPT_MODE, key,paramSpec);
-		    byte[] plainText = cipher.doFinal(Base64.getDecoder()
-		        .decode(cipherText));
-		    return new String(plainText);
-		}
+    InvalidAlgorithmParameterException, InvalidKeyException,
+    BadPaddingException, IllegalBlockSizeException {
+     byte[] salt = "salt1234".getBytes();
+    PBEParameterSpec paramSpec = new PBEParameterSpec(salt, 20);
+    Cipher cipher = Cipher.getInstance("PBEWithMD5AndDES");
+    cipher.init(Cipher.DECRYPT_MODE, key,paramSpec);
+    byte[] plainText = cipher.doFinal(Base64.getDecoder()
+        .decode(cipherText));
+    return new String(plainText);
+}
 
 }

@@ -2,6 +2,8 @@ package com.sipl.vehiclemanagement.model;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.envers.Audited;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,20 +13,20 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
+@Data
+@Audited
 @Entity
 @Table( name="VEHICLE")
 public class Vehicle {
 	
-	@Id 
+	@Id
+	@GeneratedValue( strategy = GenerationType.IDENTITY)
+	private Long id;
+
 	@Column( nullable=false, unique=true)
 	private String vehicleRegistrationNumber;
 	
@@ -74,7 +76,4 @@ public class Vehicle {
 	public void setCreationTime(LocalDateTime creationTime) {
 		this.creationTime = creationTime;
 	}
-
-
-	
 }

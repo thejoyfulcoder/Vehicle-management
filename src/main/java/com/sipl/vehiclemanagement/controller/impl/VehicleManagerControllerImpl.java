@@ -1,5 +1,6 @@
 package com.sipl.vehiclemanagement.controller.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +16,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.RestClientException;
 
+import com.lowagie.text.DocumentException;
 import com.sipl.vehiclemanagement.controller.VehicleManagerController;
 import com.sipl.vehiclemanagement.dto.user.UserLogin;
 import com.sipl.vehiclemanagement.dto.user.UserSignup;
@@ -28,6 +32,7 @@ import com.sipl.vehiclemanagement.exception.ResourceNotFoundException;
 import com.sipl.vehiclemanagement.responseObject.ApiResponseBody;
 import com.sipl.vehiclemanagement.service.VehicleManagerService;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 @Controller
@@ -51,6 +56,17 @@ public class VehicleManagerControllerImpl implements VehicleManagerController {
          }
  	
 	}
+	
+	
+	@Override
+	@GetMapping ("/page/vehicles")
+	public ResponseEntity<ApiResponseBody> getVehiclesByPage(@RequestParam (value ="pageNo", defaultValue = "0" ) int pageNo, @RequestParam(name ="pageSize", defaultValue = "20") int pageSize) {
+	    try {
+	    	return new ResponseEntity<ApiResponseBody>(new ApiResponseBody("Fetch Successfull",HttpStatus.OK,vehiclemanagerservice.getVehiclesByPage(pageNo, pageSize)),HttpStatus.OK);
+	    }catch(Exception e) {
+	    	return new ResponseEntity<ApiResponseBody>(new ApiResponseBody(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, null),HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
 
 
 	@Override
@@ -58,6 +74,7 @@ public class VehicleManagerControllerImpl implements VehicleManagerController {
 	public ResponseEntity<ApiResponseBody> getVehicleById(@PathVariable (value="registrationNumber") String regNo) {
 
 	     try {
+	    	 System.out.println("controller");
 	           return new ResponseEntity<ApiResponseBody>(new ApiResponseBody("Fetch Successfull", HttpStatus.OK,vehiclemanagerservice.getVehicleByRegistrationNumber(regNo)), HttpStatus.OK);
 	         }
 	     catch(ResourceNotFoundException e) {
@@ -157,14 +174,26 @@ public class VehicleManagerControllerImpl implements VehicleManagerController {
 	   		}
 	   	}
 	}
-
     
-//    @PostMapping ("users/login")
-//	@Override
-//	public ResponseEntity<ApiResponseBody> login(@RequestBody @Valid UserLogin loginObject, BindingResult bindingResult) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
+    
+    //RestTemplate
+    @GetMapping("/vehicles/indian")
+    public ResponseEntity<ApiResponseBody> getIndianVehicles(){
+    	try {
+    		return new ResponseEntity<ApiResponseBody>(new ApiResponseBody("Fetch Successfull",HttpStatus.OK,vehiclemanagerservice.getIndianVehicles()),HttpStatus.OK);
+    	}catch(RestClientException e) {
+    		return new ResponseEntity<ApiResponseBody>(new ApiResponseBody(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR,null),HttpStatus.INTERNAL_SERVER_ERROR);
+    	}   
+    	catch(Exception e){
+    		return new ResponseEntity<ApiResponseBody>(new ApiResponseBody(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, null), HttpStatus.INTERNAL_SERVER_ERROR);
+    	}
+    }
 
-      
+
+	@Override
+	@GetMapping("/pdf/vehicles")
+	public void generatePdf(HttpServletResponse response) throws DocumentException, IOException { 
+		vehiclemanagerservice.generatePdf(response);
+	}
+ 
 }

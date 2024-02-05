@@ -1,9 +1,14 @@
 package com.sipl.vehiclemanagement.service.impl;
 
+import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,11 +16,18 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
+import com.lowagie.text.DocumentException;
 import com.sipl.vehiclemanagement.dto.user.UserLogin;
 import com.sipl.vehiclemanagement.dto.user.UserResponseDto;
 import com.sipl.vehiclemanagement.dto.user.UserSignup;
@@ -33,18 +45,13 @@ import com.sipl.vehiclemanagement.repository.UserRepository;
 import com.sipl.vehiclemanagement.repository.VehicleManagerRepository;
 import com.sipl.vehiclemanagement.service.VehicleManagerService;
 import com.sipl.vehiclemanagement.util.EncryptionUtil;
+import com.sipl.vehiclemanagement.util.PdfGenerator;
 
+import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 public class VehicleManagerServiceImpl implements VehicleManagerService{
- 
-//	//Encryption credentials
-//	private final IvParameterSpec ivParameterSpec = EncryptionUtil.generateIv();
-//	private final String algorithm = "AES/CBC/PKCS5Padding";
     
-	@Autowired
-	private EncryptionUtil encryptionUtil;
-	   
 	@Autowired
 	private VehicleManagerRepository vehicleManagerRepository;
 	
@@ -57,13 +64,6 @@ public class VehicleManagerServiceImpl implements VehicleManagerService{
 	@Autowired
 	private UserMapper userMapper;
 	
-	
-//	public VehicleManagerServiceImpl() throws NoSuchAlgorithmException {
-//          this.key= EncryptionUtil.getKeyFromPassword(algorithm, algorithm)
-//	}
-//	
-
-	
 	@Override
 	public List<VehicleResponseDto> getAllVehicles() {
          List<Vehicle> allVehicles= vehicleManagerRepository.findAll();
@@ -71,8 +71,22 @@ public class VehicleManagerServiceImpl implements VehicleManagerService{
 	}
 	
 	
+	@Override
+	public List<VehicleResponseDto> getVehiclesByPage(int pageNo, int pageSize) {
+		
+		Pageable paging= PageRequest.of(pageNo, pageSize);
+		Page<Vehicle> pageOfVehicles=vehicleManagerRepository.findAll(paging);
+		if(pageOfVehicles.hasContent()) {
+			return vehicleMapper.vehicleListToVehicleResponseDtoList(pageOfVehicles.getContent());
+		}else {
+			return new ArrayList<VehicleResponseDto>();
+		}
+	} 
+	
+	
 
 	@Override
+	@Cacheable (value="vehicleByRegistrationNumberCache")
 	public VehicleResponseDto getVehicleByRegistrationNumber(String regNo) throws ResourceNotFoundException {
 		
 	     Optional<Vehicle> optionalContainer = vehicleManagerRepository.findByVehicleRegistrationNumber(regNo);
@@ -81,6 +95,7 @@ public class VehicleManagerServiceImpl implements VehicleManagerService{
 	            	 throw new ResourceNotFoundException("Vehicle", "registrationNumber", regNo);
 	             }
 	             Vehicle fetchedVehicle= optionalContainer.get();
+	             System.out.println("cached Service running");
 	             return vehicleMapper.vehicleToVehicleResponseDto(fetchedVehicle);
 	}
 
@@ -160,12 +175,41 @@ public class VehicleManagerServiceImpl implements VehicleManagerService{
                SecretKey key= EncryptionUtil.generateKeyFromPassword(userLoginObject.getPassword());   //Generating a key from password
         	   String decryptedPasswordPlainText = EncryptionUtil.decrypt(encryptedPasswordFromDb, key);
         	   
+        	   
         	   if(decryptedPasswordPlainText.equals(userLoginObject.getPassword())) {
         		     return userMapper.userToUserResponse(userFromDb);
         	   }else {
         		     throw new IncorrectPasswordException();
         	   }
-           }
-           
-	} 
+         }
+	}
+
+	 //RestTemplate
+	@Override
+	public Object getIndianVehicles() throws RestClientException {
+	    RestTemplate rest= new RestTemplate();
+	    String url= "http://localhost:3001/vehicles/indian";
+	  
+	    ResponseEntity<Object> response = rest.getForEntity(url, Object.class);
+	     return response.getBody();    
+	}
+
+
+	@Override
+	public void generatePdf(HttpServletResponse response) throws DocumentException, IOException {
+		
+		response.setContentType("application/pdf");
+		DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD:HH:MM:SS");
+		String currentDataTime= dateFormat.format(new java.util.Date());
+		String headerKey="Content-Disposition";
+		String headerValue= "attachment; filename=pdf_" + currentDataTime + ".pdf";
+		response.setHeader(headerKey, headerValue);
+		
+		List<Vehicle> vehicleList= vehicleManagerRepository.findAll();
+		List<VehicleResponseDto> vehicleResponseDtoList= vehicleMapper.vehicleListToVehicleResponseDtoList(vehicleList);
+		
+		PdfGenerator.generate(response, vehicleResponseDtoList);
+		
+	}
+
 }
