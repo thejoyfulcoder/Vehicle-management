@@ -1,5 +1,6 @@
 package com.sipl.vehiclemanagement.dto;
 
+import java.net.http.HttpClient;
 import java.time.LocalDateTime;
 
 import lombok.AccessLevel;

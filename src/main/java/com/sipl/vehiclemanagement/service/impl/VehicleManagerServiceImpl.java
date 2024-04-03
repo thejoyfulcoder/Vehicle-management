@@ -1,6 +1,6 @@
 package com.sipl.vehiclemanagement.service.impl;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,7 +29,7 @@ public class VehicleManagerServiceImpl implements VehicleManagerService{
 	      this.vehicleManagerRepository= vehicleManagerRepository;
 	}
 	
-
+  
 	
 	@Override
 	public List<VehicleResponseDto> getAllVehicles() {
@@ -43,14 +43,16 @@ public class VehicleManagerServiceImpl implements VehicleManagerService{
 	public VehicleResponseDto getVehicleByRegistrationNumber(String regNo) throws ResourceNotFoundException {
 		
 	     Optional<Vehicle> optionalContainer = vehicleManagerRepository.findByVehicleRegistrationNumber(regNo);
+	             ArrayList<Integer> arr= new ArrayList<Integer>();
 	             
-	             if(optionalContainer.isEmpty()) {
+	             if(!optionalContainer.isPresent()) {
 	            	 throw new ResourceNotFoundException("Vehicle", "registrationNumber", regNo);
 	             }
 	             Vehicle fetchedVehicle= optionalContainer.get();
 	             return vehicleMapper.vehicleToVehicleResponseDto(fetchedVehicle);
 	}
-
+    
+	
 
 	@Override
 	public VehicleResponseDto createVehicle(PostVehicle postVehicleObject) throws ResourceAlreadyExistsException {
@@ -81,7 +83,7 @@ public class VehicleManagerServiceImpl implements VehicleManagerService{
 			   }
 	}
 
-
+ 
 	@Override
 	public void deleteVehicle(String regNo) throws ResourceNotFoundException {
 		   boolean vehicleExists= vehicleManagerRepository.existsByVehicleRegistrationNumber(regNo);

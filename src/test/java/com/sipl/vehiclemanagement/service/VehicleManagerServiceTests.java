@@ -1,4 +1,6 @@
-package com.sipl.vehiclemanagement;
+package com.sipl.vehiclemanagement.service;
+
+
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -9,13 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.sipl.vehiclemanagement.repository.VehicleManagerRepository;
 
 @SpringBootTest
-class VehicleManagementApplicationTests {
-	
-
-	@Test
-	void contextLoads() {
-	}
-	
+public class VehicleManagerServiceTests {
 	
 	@Autowired
 	private VehicleManagerRepository vehicleManagerRepository;
@@ -23,5 +19,5 @@ class VehicleManagementApplicationTests {
 	public void firstTest() {
 		 assertNotNull(vehicleManagerRepository.findAll());
 	}
-
+ 
 }

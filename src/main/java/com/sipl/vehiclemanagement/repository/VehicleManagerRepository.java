@@ -9,7 +9,7 @@ import com.sipl.vehiclemanagement.model.Vehicle;
 import jakarta.transaction.Transactional;
 
 public interface VehicleManagerRepository extends JpaRepository<Vehicle, Long>{
-     
+    
 	 Optional<Vehicle> findByVehicleRegistrationNumber(String vehicleRegistrationNumber);
 
      @Transactional
@@ -17,4 +17,5 @@ public interface VehicleManagerRepository extends JpaRepository<Vehicle, Long>{
 	 
 	 @Transactional
 	 void deleteByVehicleRegistrationNumber(String vehicleRegistrationNumber);
+
 }
